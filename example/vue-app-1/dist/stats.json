@@ -1,0 +1,45 @@
+{
+  "errors": [],
+  "warnings": [],
+  "version": "4.46.0",
+  "hash": "2ceae4914dfe70b8bd9c",
+  "publicPath": "http://127.0.0.1:3300/",
+  "outputPath": "/Users/machao/alvin/MicroFrontEnd/example/vue-app-1/dist",
+  "entrypoints": {
+    "app": {
+      "chunks": ["chunk-vendors", "app"],
+      "assets": [
+        "js/chunk-vendors.b7631579.js",
+        "js/chunk-vendors.b7631579.js.map",
+        "css/app.39e42abf.css",
+        "js/app.91f4bf59.js",
+        "css/app.39e42abf.css.map",
+        "js/app.91f4bf59.js.map"
+      ],
+      "children": {},
+      "childAssets": {}
+    }
+  },
+  "namedChunkGroups": {
+    "app": {
+      "chunks": ["chunk-vendors", "app"],
+      "assets": [
+        "js/chunk-vendors.b7631579.js",
+        "js/chunk-vendors.b7631579.js.map",
+        "css/app.39e42abf.css",
+        "js/app.91f4bf59.js",
+        "css/app.39e42abf.css.map",
+        "js/app.91f4bf59.js.map"
+      ],
+      "children": {},
+      "childAssets": {}
+    }
+  },
+  "logging": {
+    "webpack.buildChunkGraph.visitModules": {
+      "entries": [],
+      "filteredEntries": 2,
+      "debug": false
+    }
+  }
+}
