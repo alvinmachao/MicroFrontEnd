@@ -1,0 +1,173 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tinySingleSpa</title>
+    <style>
+      .header {
+        text-align: center;
+      }
+
+      .main {
+      }
+    </style>
+    <script src="../dist/tinySingleSpa.js"></script>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  </head>
+
+  <body>
+    <div class="header">
+      <a href="#/app1">APP1</a>
+      <a href="#/app2">APP2</a>
+    </div>
+    <div class="main" id="app">loading</div>
+    <script>
+      (function (global) {
+        function loadAppPromise(app) {
+          return (props) =>
+            new Promise((resolve, reject) => {
+              console.log(props)
+              setTimeout(function () {
+                resolve({
+                  bootstrap: [app.bootstrap],
+                  mount: [app.mount],
+                  unmount: [app.unmount],
+                  unload: [app.unload],
+                });
+              }, 1000);
+            });
+        }
+        const tinySingleSpa = global.tinySingleSpa;
+        const APP1 = {
+          container: null,
+          bootstrap: async (props) => {
+            this.container = document.getElementById("app");
+            this.container.innerHTML = "bootstrapping";
+          },
+          mount: async (props) => {
+            this.container.innerHTML =
+              "hello my-single-spa; <br> this content made for app1!";
+          },
+          unmount: async (props) => {
+            this.container.innerHTML = "";
+          },
+          unload: async (props) => {
+            delete this.container;
+          },
+        };
+
+        const APP2 = {
+          container: null,
+          bootstrap: async (props) => {
+            this.container = document.getElementById("app");
+            this.container.innerHTML = "bootstrapping";
+          },
+          mount: async (props) => {
+            this.container.innerHTML =
+              "hello my-single-spa; <br> this content made for app2!";
+          },
+          unmount: async (props) => {
+            this.container.innerHTML = "";
+          },
+          unload: async (props) => {
+            delete this.container;
+          },
+        };
+        tinySingleSpa.registerApplication(
+          "app1",
+          loadAppPromise(APP1),
+          (location) => {
+          
+           return location.hash === "#/app1";
+          },
+          {
+            name: "app1",
+            vue: true,
+          }
+        );
+        tinySingleSpa.registerApplication(
+          "app2",
+          loadAppPromise(APP2),
+          (location) => {
+             return location.hash === "#/app2";
+          },
+          {
+            name: "app2",
+            vue: true,
+          }
+        );
+        tinySingleSpa.start();
+      })(window);
+    </script>
+    <!-- <script>
+      (function(global){
+        /*
+ * runScript：一个promise同步方法。可以代替创建一个script标签，然后加载服务
+ * */
+        const runScript = async (url) => {
+          return new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = url;
+            script.onload = resolve;
+            script.onerror = reject;
+            const firstScript = document.getElementsByTagName("script")[0];
+            firstScript.parentNode.insertBefore(script, firstScript);
+          });
+        };
+
+        /*
+         * getManifest：远程加载manifest.json 文件，解析需要加载的js
+         * */
+        const getManifest = (url, bundle) =>
+          new Promise(async (resolve) => {
+            const { data } = await axios.get(url);
+            const { entrypoints, publicPath } = data;
+            const assets = entrypoints[bundle].assets;
+            for (let i = 0; i < assets.length; i++) {
+              await runScript(publicPath + assets[i]).then(() => {
+                if (i === assets.length - 1) {
+                  resolve();
+                }
+              });
+            }
+          });
+
+        
+        tinySingleSpa.registerApplication(
+          "vue-app-1",
+          async ()=>{
+            await getManifest('http://127.0.0.1:3300/stats.json','app').then(()=>{
+              debugger
+              return window.vueApp1
+            })
+          },
+          (location) => {
+            return location.hash === "#/app1";
+          },
+          {
+            name: "app2",
+            vue: true,
+          }
+        );
+         tinySingleSpa.registerApplication(
+          "vue-app-2",
+          async () => { 
+             await getManifest('http://127.0.0.1:3400/stats.json', 'app').then(() => {
+              return window.vueApp2
+            })
+          },
+          (location) => {
+            return location.hash === "#/app2";
+          },
+          {
+            name: "app2",
+            vue: true,
+          }
+        );
+        tinySingleSpa.start()
+      })(window)
+    </script> -->
+  </body>
+</html>
