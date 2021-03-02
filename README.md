@@ -15,6 +15,7 @@ npm run serve
 
 App 共有 11 个状态，流转如下图
 
+[!a]https://github.com/alvinmachao/MicroFrontEnd/blob/master/images/%E5%BE%AE%E6%9C%8D%E5%8A%A1APP%E7%8A%B6%E6%80%81%E6%B5%81%E8%BD%AC.png
 状态说明
 | 状态 | 说明 |下一个状态|
 | --- | --- |---|
