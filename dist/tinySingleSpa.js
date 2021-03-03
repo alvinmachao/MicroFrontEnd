@@ -213,20 +213,52 @@
 
   const TIMEOUTS = {
     bootstrap: {
+      // 默认bootstrap时间3s
       milliseconds: 3000,
+      // 超时是否reject
       rejectWhenTimeout: false
     },
     mount: {
+      // 默认mount时间3s
       milliseconds: 3000,
+      // 超时是否reject
       rejectWhenTimeout: false
     },
     unmount: {
+      // 默认unmount时间3s
       milliseconds: 3000,
+      // 超时是否reject
       rejectWhenTimeout: false
     }
   };
   function ensureTimeout(timeouts = {}) {
     return Object.assign({}, timeouts, TIMEOUTS);
+  }
+  function reasonableTimeout(lifecyle, description, timeouts) {
+    return new Promise((resolve, reject) => {
+      let finish = false;
+      lifecyle.then(data => {
+        finish = true;
+        resolve(data);
+      }).catch(() => {
+        finish = true;
+        reject();
+      });
+      setTimeout(() => {
+        if (finish) {
+          return;
+        }
+
+        let error = `${description} did not resolve or reject for ${timeouts.milliseconds} milliseconds`;
+
+        if (timeouts.rejectWhenTimeout) {
+          reject();
+          throw new Error(error);
+        } else {
+          console.log(error);
+        }
+      }, timeouts.milliseconds);
+    });
   }
 
   /**
@@ -327,92 +359,7 @@
       app.status = LOAD_ERROR;
       return app;
     });
-  } // export function toLoadPromise(app) {
-  //   app = tinySingleSpa.getRawApps().find((item) => item.name === app.name);
-  //   console.log(`load the ${app.name} current status is `, app.status);
-  //   console.log(tinySingleSpa.getRawApps());
-  //   if (app.status !== NOT_LOADED && app.status !== LOAD_ERROR) {
-  //     return Promise.resolve(app);
-  //   }
-  //   app.status = LOAD_SOURCE_CODE;
-  //   let loadPromise = app.loadApp(getProps(app));
-  //   if (!smellLikePromise(loadPromise)) {
-  //     app.status = SKIP_BECAUSE_BROKEN;
-  //     return Promise.reject(new Error(""));
-  //   }
-  //   return new Promise((resovle, reject) => {
-  //     loadPromise
-  //       .then((appConfig) => {
-  //         if (typeof appConfig !== "object") {
-  //           throw new Error("");
-  //         }
-  //         console.log(
-  //           `load the ${app.name} completed, current status is `,
-  //           app.status
-  //         );
-  //         let errors = [];
-  //         LIFECYLES.forEach((lifecyle) => {
-  //           if (!appConfig[lifecyle]) {
-  //             errors.push(
-  //               `${lifecyle}:must be a function or function array not empty`
-  //             );
-  //           }
-  //         });
-  //         if (errors.length) {
-  //           app.status = SKIP_BECAUSE_BROKEN;
-  //           console.log(errors);
-  //           reject(app);
-  //           return;
-  //         }
-  //         app.status = NOT_BOOTSTRAPED;
-  //         app.bootstrap = flattenLifecyleArray(
-  //           appConfig.bootstrap,
-  //           `app:${app.name} bootsstrapping`
-  //         );
-  //         app.mount = flattenLifecyleArray(
-  //           appConfig.mount,
-  //           `app:${app.name} mountting`
-  //         );
-  //         app.unmount = flattenLifecyleArray(
-  //           appConfig.unmount,
-  //           `app:${app.name} unmountting`
-  //         );
-  //         app.timeouts = ensureTimeout(app.timeouts);
-  //         resovle(app);
-  //         return app;
-  //       })
-  //       .catch((e) => {
-  //         app.status = LOAD_ERROR;
-  //         reject(app);
-  //         return app;
-  //       });
-  //   });
-  // }
-  // function pro() {
-  //   return new Promise((resolve, reject) => {
-  //     setTimeout(() => {
-  //       console.log(1);
-  //       resolve(100);
-  //     }, 1000);
-  //   });
-  // }
-  // function test() {
-  //   return pro().then((data) => {
-  //     console.log("2");
-  //     return data + 100;
-  //   });
-  // }
-  // test()
-  //   .then((data) => {
-  //     console.log(3);
-  //     console.log(data);
-  //     return data + 100;
-  //   })
-  //   .then((data) => {
-  //     console.log(4);
-  //     console.log(data);
-  //     return data + 100;
-  //   });
+  }
 
   function unmountPromise(app) {
     console.log(`unmount the ${app.name} current status is `, app.status);
@@ -422,13 +369,10 @@
       return Promise.resolve(app);
     }
 
-    app.status = UNMOUNTTING; // return reasonableTimeout(
-    //   app.unmount(getProps(app)),
-    //   `app: ${app.name} unmountting`,
-    //   app.timeouts.unmount
-    // )
-
-    return app.unmount(getProps(app)).then(() => {
+    app.status = UNMOUNTTING;
+    return reasonableTimeout(app.unmount(getProps(app)), `app: ${app.name} unmountting`, app.timeouts.unmount) // return app
+    //   .unmount(getProps(app))
+    .then(() => {
       app.status = NOT_MOUNTED;
       return app;
     }).catch(e => {
@@ -436,34 +380,7 @@
       app.status = SKIP_BECAUSE_BROKEN;
       return app;
     });
-  } // export function unmountPromise(app) {
-  //   console.log(`unmount the ${app.name} current status is `, app.status);
-  //   console.log(tinySingleSpa.getRawApps());
-  //   if (app.status !== MOUNTED) {
-  //     return Promise.resolve(app);
-  //   }
-  //   app.status = UNMOUNTTING;
-  //   // return reasonableTimeout(
-  //   //   app.unmount(getProps(app)),
-  //   //   `app: ${app.name} unmountting`,
-  //   //   app.timeouts.unmount
-  //   // )
-  //   return new Promise((resovle, reject) => {
-  //     app
-  //       .unmount(getProps(app))
-  //       .then(() => {
-  //         app.status = NOT_MOUNTED;
-  //         resovle();
-  //         return app;
-  //       })
-  //       .catch((e) => {
-  //         console.log(e);
-  //         app.status = SKIP_BECAUSE_BROKEN;
-  //         reject();
-  //         return app;
-  //       });
-  //   });
-  // }
+  }
 
   function toBootstrapPromise(app) {
     console.log(`bootstrap the ${app.name} current status is `, app.status);
@@ -473,13 +390,10 @@
       return Promise.resolve(app);
     }
 
-    app.status = BOOTSTRAPPING; // return reasonableTimeout(
-    //   app.bootstrap(getProps(app)),
-    //   `app: ${app.name} bootstrapping`,
-    //   app.timeouts.bootstrap
-    // )
-
-    return app.bootstrap(getProps(app)).then(() => {
+    app.status = BOOTSTRAPPING;
+    return reasonableTimeout(app.bootstrap(getProps(app)), `app: ${app.name} bootstrapping`, app.timeouts.bootstrap) // return app
+    //   .bootstrap(getProps(app))
+    .then(() => {
       app.status = NOT_MOUNTED;
       return app;
     }).catch(e => {
@@ -487,34 +401,7 @@
       app.status = SKIP_BECAUSE_BROKEN;
       return app;
     });
-  } // export function toBootstrapPromise(app) {
-  //   console.log(`bootstrap the ${app.name} current status is `, app.status);
-  //   console.log(tinySingleSpa.getRawApps());
-  //   if (app.status !== NOT_BOOTSTRAPED) {
-  //     return Promise.resolve(app);
-  //   }
-  //   app.status = BOOTSTRAPPING;
-  //   // return reasonableTimeout(
-  //   //   app.bootstrap(getProps(app)),
-  //   //   `app: ${app.name} bootstrapping`,
-  //   //   app.timeouts.bootstrap
-  //   // )
-  //   return new Promise((resovle, reject) => {
-  //     app
-  //       .bootstrap(getProps(app))
-  //       .then(() => {
-  //         app.status = NOT_MOUNTED;
-  //         resovle();
-  //         return app;
-  //       })
-  //       .catch((e) => {
-  //         console.log(e);
-  //         app.status = SKIP_BECAUSE_BROKEN;
-  //         reject();
-  //         return app;
-  //       });
-  //   });
-  // }
+  }
 
   function toMountPromise(app) {
     console.log(`mount the ${app.name} current status is `, app.status);
@@ -524,13 +411,10 @@
       return Promise.resolve(app);
     }
 
-    app.status = MOUNTTING; // return reasonableTimeout(
-    //   app.mount(getProps(app)),
-    //   `app: ${app.name} moutting`,
-    //   app.timeouts.mount
-    // )
-
-    return app.mount(getProps(app)).then(() => {
+    app.status = MOUNTTING;
+    return reasonableTimeout(app.mount(getProps(app)), `app: ${app.name} moutting`, app.timeouts.mount) // return app
+    //   .mount(getProps(app))
+    .then(() => {
       app.status = MOUNTED;
       return app;
     }).catch(e => {
@@ -538,34 +422,7 @@
       app.status = SKIP_BECAUSE_BROKEN;
       return app;
     });
-  } // export function toMountPromise(app) {
-  //   console.log(`mount the ${app.name} current status is `, app.status);
-  //   console.log(tinySingleSpa.getRawApps());
-  //   if (app.status !== NOT_MOUNTED) {
-  //     return Promise.resolve(app);
-  //   }
-  //   app.status = MOUNTTING;
-  //   // return reasonableTimeout(
-  //   //   app.mount(getProps(app)),
-  //   //   `app: ${app.name} moutting`,
-  //   //   app.timeouts.mount
-  //   // )
-  //   return new Promise((resovle, reject) => {
-  //     app
-  //       .mount(getProps(app))
-  //       .then(() => {
-  //         app.status = MOUNTED;
-  //         resovle();
-  //         return app;
-  //       })
-  //       .catch((e) => {
-  //         console.log(e);
-  //         app.status = SKIP_BECAUSE_BROKEN;
-  //         reject();
-  //         return app;
-  //       });
-  //   });
-  // }
+  }
 
   let loadAppUnderway = false;
   const pendingPromise = [];

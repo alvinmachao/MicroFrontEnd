@@ -1,14 +1,20 @@
 const TIMEOUTS = {
   bootstrap: {
+    // 默认bootstrap时间3s
     milliseconds: 3000,
+    // 超时是否reject
     rejectWhenTimeout: false,
   },
   mount: {
+    // 默认mount时间3s
     milliseconds: 3000,
+    // 超时是否reject
     rejectWhenTimeout: false,
   },
   unmount: {
+    // 默认unmount时间3s
     milliseconds: 3000,
+    // 超时是否reject
     rejectWhenTimeout: false,
   },
 };
@@ -33,6 +39,7 @@ export function reasonableTimeout(lifecyle, description, timeouts) {
       }
       let error = `${description} did not resolve or reject for ${timeouts.milliseconds} milliseconds`;
       if (timeouts.rejectWhenTimeout) {
+        reject();
         throw new Error(error);
       } else {
         console.log(error);

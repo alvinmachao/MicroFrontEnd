@@ -15,49 +15,22 @@ export function toBootstrapPromise(app) {
     return Promise.resolve(app);
   }
   app.status = BOOTSTRAPPING;
-  // return reasonableTimeout(
-  //   app.bootstrap(getProps(app)),
-  //   `app: ${app.name} bootstrapping`,
-  //   app.timeouts.bootstrap
-  // )
-  return app
-    .bootstrap(getProps(app))
-    .then(() => {
-      app.status = NOT_MOUNTED;
-      return app;
-    })
-    .catch((e) => {
-      console.log(e);
-      app.status = SKIP_BECAUSE_BROKEN;
-      return app;
-    });
+  return (
+    reasonableTimeout(
+      app.bootstrap(getProps(app)),
+      `app: ${app.name} bootstrapping`,
+      app.timeouts.bootstrap
+    )
+      // return app
+      //   .bootstrap(getProps(app))
+      .then(() => {
+        app.status = NOT_MOUNTED;
+        return app;
+      })
+      .catch((e) => {
+        console.log(e);
+        app.status = SKIP_BECAUSE_BROKEN;
+        return app;
+      })
+  );
 }
-
-// export function toBootstrapPromise(app) {
-//   console.log(`bootstrap the ${app.name} current status is `, app.status);
-//   console.log(tinySingleSpa.getRawApps());
-//   if (app.status !== NOT_BOOTSTRAPED) {
-//     return Promise.resolve(app);
-//   }
-//   app.status = BOOTSTRAPPING;
-//   // return reasonableTimeout(
-//   //   app.bootstrap(getProps(app)),
-//   //   `app: ${app.name} bootstrapping`,
-//   //   app.timeouts.bootstrap
-//   // )
-//   return new Promise((resovle, reject) => {
-//     app
-//       .bootstrap(getProps(app))
-//       .then(() => {
-//         app.status = NOT_MOUNTED;
-//         resovle();
-//         return app;
-//       })
-//       .catch((e) => {
-//         console.log(e);
-//         app.status = SKIP_BECAUSE_BROKEN;
-//         reject();
-//         return app;
-//       });
-//   });
-// }

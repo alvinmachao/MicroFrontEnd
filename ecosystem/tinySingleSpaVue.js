@@ -26,9 +26,14 @@ function emptyElement(boxId) {
 }
 function bootstrap() {
   return Promise.resolve();
+  // 模拟超时
+  // return new Promise((resove, reject) => {
+  //   setTimeout(() => {
+  //     resove();
+  //   }, 5000);
+  // });
 }
 function mount(opts, mountedInstances, props) {
-  console.log("mount");
   let el = opts.appOptions.el;
   let boxId = PRE_FIX_ID + props.name ? props.name : "aa";
   if (!el || String(el).indexOf(boxId) === 0) {
