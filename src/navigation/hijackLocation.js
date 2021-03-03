@@ -29,10 +29,10 @@ window.removeEventListener = function (type, handler) {
     originRemoveEventListener.apply(this, arguments);
   }
 };
-let originPopstate = window.history.popstate;
+let originPushState = window.history.pushState;
 let originReplacestate = window.history.replaceState;
-window.history.popstate = function (state, title, url) {
-  let result = originPopstate.apply(this, arguments);
+window.history.pushState = function (state, title, url) {
+  let result = originPushState.apply(this, arguments);
   route(mockPopStateEvent(state));
   return result;
 };

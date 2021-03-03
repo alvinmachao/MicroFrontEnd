@@ -1,13 +1,8 @@
 (function (global, factory) {
-  typeof exports === "object" && typeof module !== "undefined"
-    ? factory(exports)
-    : typeof define === "function" && define.amd
-    ? define(["exports"], factory)
-    : ((global =
-        typeof globalThis !== "undefined" ? globalThis : global || self),
-      factory((global.tinySingleSpa = {})));
-})(this, function (exports) {
-  "use strict";
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.tinySingleSpa = {}));
+}(this, (function (exports) { 'use strict';
 
   const NOT_LOADED = "NOT_LOADED";
   const LOAD_SOURCE_CODE = "LOAD_SOURCE_CODE";
@@ -26,11 +21,7 @@
     return app.status !== LOAD_ERROR;
   };
   const isloaded = function (app) {
-    return (
-      app.status !== LOAD_ERROR &&
-      app.status !== NOT_LOADED &&
-      app.status !== LOAD_SOURCE_CODE
-    );
+    return app.status !== LOAD_ERROR && app.status !== NOT_LOADED && app.status !== LOAD_SOURCE_CODE;
   };
   const isnotLoad = function (app) {
     return !isloaded(app);
@@ -59,7 +50,7 @@
   };
 
   function getAppNames() {
-    return APPS.map((app) => {
+    return APPS.map(app => {
       return app.name;
     });
   }
@@ -76,12 +67,7 @@
    * @return {promise}
    */
 
-  function registerApplication(
-    appName,
-    loadFunction,
-    activeWhenFunction,
-    customProps = {}
-  ) {
+  function registerApplication(appName, loadFunction, activeWhenFunction, customProps = {}) {
     if (!appName || typeof appName !== "string") {
       throw new Error(`App name must be no-empty string`);
     }
@@ -108,7 +94,7 @@
       activityWhen: activeWhenFunction,
       status: NOT_LOADED,
       customProps,
-      services: {},
+      services: {}
     });
     return invoke();
   }
@@ -122,10 +108,7 @@
    */
 
   function getAppsToload() {
-    let loadPromise = APPS.filter(notBroken)
-      .filter(notLoadError)
-      .filter(isnotLoad)
-      .filter(shouldBeActive);
+    let loadPromise = APPS.filter(notBroken).filter(notLoadError).filter(isnotLoad).filter(shouldBeActive);
     return loadPromise;
   }
   /**
@@ -139,10 +122,7 @@
    */
 
   function getUnmountApps() {
-    return APPS.filter(notBroken)
-      .filter(isloaded)
-      .filter(isActive)
-      .filter(shouldnotBeActive);
+    return APPS.filter(notBroken).filter(isloaded).filter(isActive).filter(shouldnotBeActive);
   }
   /**
    * 获取满足加载条件的app
@@ -156,28 +136,25 @@
    */
 
   function getAppsToMount() {
-    return APPS.filter(notBroken)
-      .filter(notLoadError)
-      .filter(isnotActive)
-      .filter(shouldBeActive);
+    return APPS.filter(notBroken).filter(notLoadError).filter(isnotActive).filter(shouldBeActive);
   }
   function getMountedApps() {
-    return APPS.filter(isActive).map((item) => item.name);
+    return APPS.filter(isActive).map(item => item.name);
   }
 
   const TIMEOUTS = {
     bootstrap: {
       milliseconds: 3000,
-      rejectWhenTimeout: false,
+      rejectWhenTimeout: false
     },
     mount: {
       milliseconds: 3000,
-      rejectWhenTimeout: false,
+      rejectWhenTimeout: false
     },
     unmount: {
       milliseconds: 3000,
-      rejectWhenTimeout: false,
-    },
+      rejectWhenTimeout: false
+    }
   };
   function ensureTimeout(timeouts = {}) {
     return Object.assign({}, timeouts, TIMEOUTS);
@@ -194,11 +171,7 @@
       return true;
     }
 
-    return (
-      typeof p === "object" &&
-      typeof p.then === "function" &&
-      typeof p.catch === "function"
-    );
+    return typeof p === "object" && typeof p.then === "function" && typeof p.catch === "function";
   }
   function flattenLifecyleArray(lifecyles, description) {
     if (!Array.isArray(lifecyles)) {
@@ -206,7 +179,8 @@
     }
 
     if (lifecyles.length === 0) {
-      lifecyles = [() => {}];
+      lifecyles = [() => {
+      }];
     }
 
     return function (pros) {
@@ -235,11 +209,14 @@
   function getProps(app) {
     return {
       name: app.name,
-      ...app.customProps,
+      ...app.customProps
     };
   }
 
   function toLoadPromise(app) {
+    console.log(`load the ${app.name} current status is `, app.status);
+    console.log(tinySingleSpa.getRawApps());
+
     if (app.status !== NOT_LOADED && app.status !== LOAD_ERROR) {
       return Promise.resolve(app);
     }
@@ -252,50 +229,126 @@
       return Promise.reject(new Error(""));
     }
 
-    return loadPromise
-      .then((appConfig) => {
-        if (typeof appConfig !== "object") {
-          throw new Error("");
+    return loadPromise.then(appConfig => {
+      if (typeof appConfig !== "object") {
+        throw new Error("");
+      }
+
+      console.log(`load the ${app.name} completed, current status is `, app.status);
+      let errors = [];
+      LIFECYLES.forEach(lifecyle => {
+        if (!appConfig[lifecyle]) {
+          errors.push(`${lifecyle}:must be a function or function array not empty`);
         }
-
-        let errors = [];
-        LIFECYLES.forEach((lifecyle) => {
-          if (!appConfig[lifecyle]) {
-            errors.push(
-              `${lifecyle}:must be a function or function array not empty`
-            );
-          }
-        });
-
-        if (errors.length) {
-          app.status = SKIP_BECAUSE_BROKEN;
-          console.log(errors);
-          return;
-        }
-
-        app.status = NOT_BOOTSTRAPED;
-        app.bootstrap = flattenLifecyleArray(
-          appConfig.bootstrap,
-          `app:${app.name} bootsstrapping`
-        );
-        app.mount = flattenLifecyleArray(
-          appConfig.mount,
-          `app:${app.name} mountting`
-        );
-        app.unmount = flattenLifecyleArray(
-          appConfig.unmount,
-          `app:${app.name} unmountting`
-        );
-        app.timeouts = ensureTimeout(app.timeouts);
-        return app;
-      })
-      .catch((e) => {
-        app.status = LOAD_ERROR;
-        return app;
       });
-  }
+
+      if (errors.length) {
+        app.status = SKIP_BECAUSE_BROKEN;
+        console.log(errors);
+        return;
+      }
+
+      app.status = NOT_BOOTSTRAPED;
+      app.bootstrap = flattenLifecyleArray(appConfig.bootstrap, `app:${app.name} bootsstrapping`);
+      app.mount = flattenLifecyleArray(appConfig.mount, `app:${app.name} mountting`);
+      app.unmount = flattenLifecyleArray(appConfig.unmount, `app:${app.name} unmountting`);
+      app.timeouts = ensureTimeout(app.timeouts);
+      return app;
+    }).catch(e => {
+      app.status = LOAD_ERROR;
+      return app;
+    });
+  } // export function toLoadPromise(app) {
+  //   app = tinySingleSpa.getRawApps().find((item) => item.name === app.name);
+  //   console.log(`load the ${app.name} current status is `, app.status);
+  //   console.log(tinySingleSpa.getRawApps());
+  //   if (app.status !== NOT_LOADED && app.status !== LOAD_ERROR) {
+  //     return Promise.resolve(app);
+  //   }
+  //   app.status = LOAD_SOURCE_CODE;
+  //   let loadPromise = app.loadApp(getProps(app));
+  //   if (!smellLikePromise(loadPromise)) {
+  //     app.status = SKIP_BECAUSE_BROKEN;
+  //     return Promise.reject(new Error(""));
+  //   }
+  //   return new Promise((resovle, reject) => {
+  //     loadPromise
+  //       .then((appConfig) => {
+  //         if (typeof appConfig !== "object") {
+  //           throw new Error("");
+  //         }
+  //         console.log(
+  //           `load the ${app.name} completed, current status is `,
+  //           app.status
+  //         );
+  //         let errors = [];
+  //         LIFECYLES.forEach((lifecyle) => {
+  //           if (!appConfig[lifecyle]) {
+  //             errors.push(
+  //               `${lifecyle}:must be a function or function array not empty`
+  //             );
+  //           }
+  //         });
+  //         if (errors.length) {
+  //           app.status = SKIP_BECAUSE_BROKEN;
+  //           console.log(errors);
+  //           reject(app);
+  //           return;
+  //         }
+  //         app.status = NOT_BOOTSTRAPED;
+  //         app.bootstrap = flattenLifecyleArray(
+  //           appConfig.bootstrap,
+  //           `app:${app.name} bootsstrapping`
+  //         );
+  //         app.mount = flattenLifecyleArray(
+  //           appConfig.mount,
+  //           `app:${app.name} mountting`
+  //         );
+  //         app.unmount = flattenLifecyleArray(
+  //           appConfig.unmount,
+  //           `app:${app.name} unmountting`
+  //         );
+  //         app.timeouts = ensureTimeout(app.timeouts);
+  //         resovle(app);
+  //         return app;
+  //       })
+  //       .catch((e) => {
+  //         app.status = LOAD_ERROR;
+  //         reject(app);
+  //         return app;
+  //       });
+  //   });
+  // }
+  // function pro() {
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       console.log(1);
+  //       resolve(100);
+  //     }, 1000);
+  //   });
+  // }
+  // function test() {
+  //   return pro().then((data) => {
+  //     console.log("2");
+  //     return data + 100;
+  //   });
+  // }
+  // test()
+  //   .then((data) => {
+  //     console.log(3);
+  //     console.log(data);
+  //     return data + 100;
+  //   })
+  //   .then((data) => {
+  //     console.log(4);
+  //     console.log(data);
+  //     return data + 100;
+  //   });
 
   function unmountPromise(app) {
+    console.log(`unmount the ${app.name} current status is `, app.status);
+    console.log(tinySingleSpa.getRawApps());
+
     if (app.status !== MOUNTED) {
       return Promise.resolve(app);
     }
@@ -306,21 +359,46 @@
     //   app.timeouts.unmount
     // )
 
-    return app
-      .unmount(getProps(app))
-      .then(() => {
-        app.status = NOT_MOUNTED;
-        return app;
-      })
-      .catch((e) => {
-        console.log(e);
-        app.status = SKIP_BECAUSE_BROKEN;
-        return app;
-      });
-  }
+    return app.unmount(getProps(app)).then(() => {
+      app.status = NOT_MOUNTED;
+      return app;
+    }).catch(e => {
+      console.log(e);
+      app.status = SKIP_BECAUSE_BROKEN;
+      return app;
+    });
+  } // export function unmountPromise(app) {
+  //   console.log(`unmount the ${app.name} current status is `, app.status);
+  //   console.log(tinySingleSpa.getRawApps());
+  //   if (app.status !== MOUNTED) {
+  //     return Promise.resolve(app);
+  //   }
+  //   app.status = UNMOUNTTING;
+  //   // return reasonableTimeout(
+  //   //   app.unmount(getProps(app)),
+  //   //   `app: ${app.name} unmountting`,
+  //   //   app.timeouts.unmount
+  //   // )
+  //   return new Promise((resovle, reject) => {
+  //     app
+  //       .unmount(getProps(app))
+  //       .then(() => {
+  //         app.status = NOT_MOUNTED;
+  //         resovle();
+  //         return app;
+  //       })
+  //       .catch((e) => {
+  //         console.log(e);
+  //         app.status = SKIP_BECAUSE_BROKEN;
+  //         reject();
+  //         return app;
+  //       });
+  //   });
+  // }
 
   function toBootstrapPromise(app) {
-    console.log("toBootstrapPromise");
+    console.log(`bootstrap the ${app.name} current status is `, app.status);
+    console.log(tinySingleSpa.getRawApps());
 
     if (app.status !== NOT_BOOTSTRAPED) {
       return Promise.resolve(app);
@@ -332,21 +410,46 @@
     //   app.timeouts.bootstrap
     // )
 
-    return app
-      .bootstrap(getProps(app))
-      .then(() => {
-        app.status = NOT_MOUNTED;
-        return app;
-      })
-      .catch((e) => {
-        console.log(e);
-        app.status = SKIP_BECAUSE_BROKEN;
-        return app;
-      });
-  }
+    return app.bootstrap(getProps(app)).then(() => {
+      app.status = NOT_MOUNTED;
+      return app;
+    }).catch(e => {
+      console.log(e);
+      app.status = SKIP_BECAUSE_BROKEN;
+      return app;
+    });
+  } // export function toBootstrapPromise(app) {
+  //   console.log(`bootstrap the ${app.name} current status is `, app.status);
+  //   console.log(tinySingleSpa.getRawApps());
+  //   if (app.status !== NOT_BOOTSTRAPED) {
+  //     return Promise.resolve(app);
+  //   }
+  //   app.status = BOOTSTRAPPING;
+  //   // return reasonableTimeout(
+  //   //   app.bootstrap(getProps(app)),
+  //   //   `app: ${app.name} bootstrapping`,
+  //   //   app.timeouts.bootstrap
+  //   // )
+  //   return new Promise((resovle, reject) => {
+  //     app
+  //       .bootstrap(getProps(app))
+  //       .then(() => {
+  //         app.status = NOT_MOUNTED;
+  //         resovle();
+  //         return app;
+  //       })
+  //       .catch((e) => {
+  //         console.log(e);
+  //         app.status = SKIP_BECAUSE_BROKEN;
+  //         reject();
+  //         return app;
+  //       });
+  //   });
+  // }
 
   function toMountPromise(app) {
-    console.log("mountApp");
+    console.log(`mount the ${app.name} current status is `, app.status);
+    console.log(tinySingleSpa.getRawApps());
 
     if (app.status !== NOT_MOUNTED) {
       return Promise.resolve(app);
@@ -358,23 +461,47 @@
     //   app.timeouts.mount
     // )
 
-    return app
-      .mount(getProps(app))
-      .then(() => {
-        app.status = MOUNTED;
-        return app;
-      })
-      .catch((e) => {
-        console.log(e);
-        app.status = SKIP_BECAUSE_BROKEN;
-        return app;
-      });
-  }
+    return app.mount(getProps(app)).then(() => {
+      app.status = MOUNTED;
+      return app;
+    }).catch(e => {
+      console.log(e);
+      app.status = SKIP_BECAUSE_BROKEN;
+      return app;
+    });
+  } // export function toMountPromise(app) {
+  //   console.log(`mount the ${app.name} current status is `, app.status);
+  //   console.log(tinySingleSpa.getRawApps());
+  //   if (app.status !== NOT_MOUNTED) {
+  //     return Promise.resolve(app);
+  //   }
+  //   app.status = MOUNTTING;
+  //   // return reasonableTimeout(
+  //   //   app.mount(getProps(app)),
+  //   //   `app: ${app.name} moutting`,
+  //   //   app.timeouts.mount
+  //   // )
+  //   return new Promise((resovle, reject) => {
+  //     app
+  //       .mount(getProps(app))
+  //       .then(() => {
+  //         app.status = MOUNTED;
+  //         resovle();
+  //         return app;
+  //       })
+  //       .catch((e) => {
+  //         console.log(e);
+  //         app.status = SKIP_BECAUSE_BROKEN;
+  //         reject();
+  //         return app;
+  //       });
+  //   });
+  // }
 
   const HIJACK_EVENTS_NAME = /^(popstate|hashchange)$/i;
   const EVENTPOOL = {
     popstate: [],
-    hashchange: [],
+    hashchange: []
   };
 
   let route = function () {
@@ -387,11 +514,7 @@
   const originRemoveEventListener = window.removeEventListener;
 
   window.addEventListener = function (type, handler) {
-    if (
-      type &&
-      HIJACK_EVENTS_NAME.test(type) &&
-      typeof handler === "function"
-    ) {
+    if (type && HIJACK_EVENTS_NAME.test(type) && typeof handler === "function") {
       EVENTPOOL[type].indexof(handler) === -1 && EVENTPOOL[type].push(handler);
     } else {
       originAddEventListener.apply(this, arguments);
@@ -399,26 +522,19 @@
   };
 
   window.removeEventListener = function (type, handler) {
-    if (
-      type &&
-      HIJACK_EVENTS_NAME.test(type) &&
-      typeof handler === "function"
-    ) {
+    if (type && HIJACK_EVENTS_NAME.test(type) && typeof handler === "function") {
       let list = EVENTPOOL[type];
-      EVENTPOOL[type] =
-        list.indexof(handler) > -1
-          ? list.filter((han) => han !== handler)
-          : EVENTPOOL[type];
+      EVENTPOOL[type] = list.indexof(handler) > -1 ? list.filter(han => han !== handler) : EVENTPOOL[type];
     } else {
       originRemoveEventListener.apply(this, arguments);
     }
   };
 
-  let originPopstate = window.history.popstate;
+  let originPushState = window.history.pushState;
   let originReplacestate = window.history.replaceState;
 
-  window.history.popstate = function (state, title, url) {
-    let result = originPopstate.apply(this, arguments);
+  window.history.pushState = function (state, title, url) {
+    let result = originPushState.apply(this, arguments);
     route(mockPopStateEvent(state));
     return result;
   };
@@ -431,7 +547,7 @@
 
   function mockPopStateEvent(state) {
     return new PopStateEvent("popstate", {
-      state,
+      state
     });
   }
 
@@ -450,7 +566,7 @@
       return;
     }
 
-    EVENTPOOL[name].forEach((handler) => handler.apply(window, eventArgs));
+    EVENTPOOL[name].forEach(handler => handler.apply(window, eventArgs));
   }
 
   let loadAppUnderway = false;
@@ -462,7 +578,7 @@
         pendingPromise.push({
           resolve,
           reject,
-          events,
+          events
         });
       });
     }
@@ -473,19 +589,19 @@
       loadApps();
     } // load app;
 
+
     function loadApps() {
       let promiseLoadApps = getAppsToload().map(toLoadPromise);
       console.log("promiseLoadApps:", promiseLoadApps);
-      Promise.all(promiseLoadApps)
-        .then(() => {
-          callAllLocationEvent();
-          return finish();
-        })
-        .catch((e) => {
-          callAllLocationEvent();
-          console.log(e);
-        });
+      Promise.all(promiseLoadApps).then(() => {
+        callAllLocationEvent();
+        return finish();
+      }).catch(e => {
+        callAllLocationEvent();
+        console.log(e);
+      });
     } // 启动app
+
 
     function performAppChanges() {
       // unmout app
@@ -505,40 +621,32 @@
       let mountApps = getAppsToMount();
       console.log("mountApps:", mountApps); // mountApps = mountApps.filter((app) => loadApps.indexOf(app) === -1);
 
-      let mountPromise = mountApps.map((app) => {
-        return toLoadPromise(app)
-          .then(() => toBootstrapPromise(app))
-          .then(() => unmountAppsPromise)
-          .then(() => toMountPromise(app));
+      let mountPromise = mountApps.map(app => {
+        return toLoadPromise(app).then(app => toBootstrapPromise(app)) // .then(() => unmountAppsPromise)
+        .then(app => toMountPromise(app));
       });
-      return unmountAppsPromise.then(
-        () => {
-          // let loadAndMountPromise = mountPromise;
-          // console.log("loadAndMountPromise:", loadAndMountPromise);
-          return Promise.all(mountPromise).then(
-            () => {
-              callAllLocationEvent();
-              finish();
-            },
-            (ex) => {
-              pendings && pendings.forEach((item) => item.reject(ex));
-              throw ex;
-            }
-          );
-        },
-        (e) => {
+      return unmountAppsPromise.then(() => {
+        // let loadAndMountPromise = mountPromise;
+        // console.log("loadAndMountPromise:", loadAndMountPromise);
+        return Promise.all(mountPromise).then(() => {
           callAllLocationEvent();
-          console.log(e);
-          throw e;
-        }
-      );
+          finish();
+        }, ex => {
+          pendings && pendings.forEach(item => item.reject(ex));
+          throw ex;
+        });
+      }, e => {
+        callAllLocationEvent();
+        console.log(e);
+        throw e;
+      });
     }
 
     function finish() {
       let resoveValue = getMountedApps();
 
       if (pendings) {
-        pendings.forEach((pend) => {
+        pendings.forEach(pend => {
           pend.resolve(resoveValue);
         });
       }
@@ -555,11 +663,9 @@
     }
 
     function callAllLocationEvent() {
-      pendings &&
-        pendings.length &&
-        pendings.forEach((pend) => {
-          pend.events && callCapturedEvents(pend.events);
-        });
+      pendings && pendings.length && pendings.forEach(pend => {
+        pend.events && callCapturedEvents(pend.events);
+      });
       events && callCapturedEvents(events);
     }
   }
@@ -579,6 +685,7 @@
   exports.registerApplication = registerApplication;
   exports.start = start;
 
-  Object.defineProperty(exports, "__esModule", { value: true });
-});
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
 //# sourceMappingURL=tinySingleSpa.js.map

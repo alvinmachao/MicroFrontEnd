@@ -3,7 +3,11 @@
 ```
 npm install
 
+<!-- 开发tinySingleSpa -->
 npm run serve
+
+<!-- 打包tinySingleSpa -->
+npm run build
 
 ```
 

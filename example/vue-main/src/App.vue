@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="header">
-      <a href="#/app1">App1</a>
-      <a href="#/app2">App2</a>
+      <a @click.prevent="hashChange('app1')">App1</a>
+      <a @click.prevent="hashChange('app2')">App2</a>
     </div>
     <div id="subApp"></div>
   </div>
@@ -11,6 +11,11 @@
 <script>
 export default {
   name: "App",
+  methods: {
+    hashChange(value) {
+      window.history.pushState(null, null, value);
+    },
+  },
 };
 </script>
 

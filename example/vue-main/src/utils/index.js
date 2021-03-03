@@ -7,7 +7,6 @@ const runScript = (url) => {
     const script = document.createElement("script");
     script.src = url;
     script.onload = function() {
-      console.log("succ:", url);
       resolve();
     };
     script.onerror = reject;
@@ -28,19 +27,16 @@ const getManifest = (url, bundle) =>
         const assets = entrypoints[bundle].assets.filter((a) => {
           return !/^.+\.hot-update.js$/.test(a);
         });
-        console.log("load", 1);
-
         function next(index) {
           if (index >= assets.length) {
             resolve();
             return;
           }
           let asset = assets[index];
-          console.log(publicPath + asset);
           runScript(publicPath + asset)
             .then(() => {
-              console.log("curIndex", index);
-              next(++index);
+              console.log("succ load ", index);
+              next(index + 1);
             })
             .catch(reject);
         }

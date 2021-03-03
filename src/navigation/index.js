@@ -39,6 +39,7 @@ export function invoke(pendings = [], events) {
         console.log(e);
       });
   }
+
   // 启动app
   function performAppChanges() {
     // unmout app
@@ -60,10 +61,12 @@ export function invoke(pendings = [], events) {
     console.log("mountApps:", mountApps);
     // mountApps = mountApps.filter((app) => loadApps.indexOf(app) === -1);
     let mountPromise = mountApps.map((app) => {
-      return toLoadPromise(app)
-        .then(() => toBootstrapPromise(app))
-        .then(() => unmountAppsPromise)
-        .then(() => toMountPromise(app));
+      return (
+        toLoadPromise(app)
+          .then((app) => toBootstrapPromise(app))
+          // .then(() => unmountAppsPromise)
+          .then((app) => toMountPromise(app))
+      );
     });
     return unmountAppsPromise.then(
       () => {

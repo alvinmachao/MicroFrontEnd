@@ -10,7 +10,6 @@ const lifecyles = tinySingleSpaVue({
     render: (h) => h(App),
   },
 });
-console.log(window.vueApp1);
 export const bootstrap = lifecyles.bootstrap;
 export const mount = lifecyles.mount;
 export const unmount = lifecyles.unmount;

@@ -13,8 +13,8 @@ module.exports = {
   devServer: {
     port: 3300,
     overlay: {
-      warning: false,
-      error: false,
+      warnings: false,
+      errors: false,
     },
     hot: true,
     clientLogLevel: "warning",

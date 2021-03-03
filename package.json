@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "directories": {
-    "example": "example"
-  },
+  "directories": {},
   "scripts": {
     "serve": "SERVE=true rollup -c -w"
   },
