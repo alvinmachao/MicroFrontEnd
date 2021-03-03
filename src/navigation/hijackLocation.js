@@ -4,11 +4,12 @@ const EVENTPOOL = {
   popstate: [],
   hashchange: [],
 };
-let route = function () {
+export const reroute = function () {
   invoke([], arguments);
 };
-window.addEventListener("popstate", route);
-window.addEventListener("hashchange", route);
+
+window.addEventListener("popstate", reroute);
+window.addEventListener("hashchange", reroute);
 const originAddEventListener = window.addEventListener;
 const originRemoveEventListener = window.removeEventListener;
 window.addEventListener = function (type, handler) {
@@ -33,12 +34,12 @@ let originPushState = window.history.pushState;
 let originReplacestate = window.history.replaceState;
 window.history.pushState = function (state, title, url) {
   let result = originPushState.apply(this, arguments);
-  route(mockPopStateEvent(state));
+  reroute(mockPopStateEvent(state));
   return result;
 };
 window.history.replaceState = function (state, title, url) {
   let result = originReplacestate.apply(this, arguments);
-  route(mockPopStateEvent(state));
+  reroute(mockPopStateEvent(state));
   return result;
 };
 

@@ -9,7 +9,8 @@ import {
   isnotActive,
   shouldnotBeActive,
 } from "./app.helper";
-import { invoke } from "../navigation";
+// import { invoke } from "../navigation";
+import { reroute } from "../navigation/hijackLocation";
 // const APPS = [];
 export function getAppNames() {
   return APPS.map((app) => {
@@ -58,7 +59,8 @@ export function registerApplication(
     customProps,
     services: {},
   });
-  return invoke();
+  // reroute();
+  // return invoke();
 }
 /**
  * 获取满足加载条件的app
