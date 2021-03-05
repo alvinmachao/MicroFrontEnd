@@ -78,3 +78,39 @@ App 共有 11 个状态，流转如下图
 | UPDATEING           | service 更新中只有 service 有此状态                            | MOUNTED SKIP_BECAUSE_BROKEN                    |
 | SKIP_BECAUSE_BROKEN | app 变更失败就会变成此状态，且不会在变更                       | 无                                             |
 | LOAD_ERROR          | 加载错误意味着 app 无法使用                                    | 无                                             |
+
+3、**App 生命周期及超时处理**
+
+app 生命周期是一个函数或者数组，但是他们都必须返回的是 Promise。
+
+为了保证 app 的可用性，为每个生命周期函数添加了超时处理，可自行配置也可使用默认参数
+
+```
+const TIMEOUTS = {
+  bootstrap: {
+    // 默认bootstrap时间3s
+    milliseconds: 3000,
+    // 超时是否reject
+    rejectWhenTimeout: false,
+  },
+  mount: {
+    // 默认mount时间3s
+    milliseconds: 3000,
+    // 超时是否reject
+    rejectWhenTimeout: false,
+  },
+  unmount: {
+    // 默认unmount时间3s
+    milliseconds: 3000,
+    // 超时是否reject
+    rejectWhenTimeout: false,
+  },
+};
+
+```
+
+# 四、路由拦截
+
+微前端中 app 分为两种，一种是根据 location 变化而变化的，我们称之为 app,还有一种是纯功能（Feature）级别的，称之为 service。
+
+微前端框架为了保证 app 生命周期运行正常，需要对路由进行拦截而且确保框架是第一个对 Location 相关事件进行处理，然后才会是子应用 app 的 router 处理。
